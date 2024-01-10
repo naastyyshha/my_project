@@ -1,133 +1,169 @@
+import copy
+import sys
 import pygame
+from logic import *
+from utils import terminate, CP
 
-from utils import load_image
+pygame.init()
 
-# tile_images = {
-#     'wall': load_image('box.png'),
-#     'empty': load_image('grass.png')
-# }
-# player_img = load_image('mar.png')
-#
-# tile_width = tile_height = 100
-
-all_sprite = pygame.sprite.Group()
-tiles_group = pygame.sprite.Group()
-walls = pygame.sprite.Group()
-player_group = pygame.sprite.Group()
-
-
-# class Tile(pygame.sprite.Sprite):
-#     def __init__(self, tile_type, x, y):
-#         super().__init__(all_sprite, tiles_group)
-#         self.image = pygame.transform.scale(tile_images.get(tile_type),
-#                                             (tile_width, tile_height))
-#         self.rect = self.image.get_rect().move(tile_width * x, tile_height * y)
-#         if tile_type == 'wall':
-#             self.add(walls)
-
-
-# class Player(pygame.sprite.Sprite):
-#     def __init__(self, x, y):
-#         super().__init__(all_sprite, player_group)
-#         self.image = pygame.transform.scale(player_img, (48, 80))
-#         self.rect = self.image.get_rect().move(tile_width * x + 25, tile_height * y + 5)
-
-#     def update(self, event):
-#         dx, dy = 0, 0
-#         if event.type == pygame.KEYDOWN:
-#             if event.key == pygame.K_w:
-#                 dy = -tile_height
-#             if event.key == pygame.K_s:
-#                 dy = tile_height
-#             if event.key == pygame.K_a:
-#                 dx = -tile_width
-#             if event.key == pygame.K_d:
-#                 dx = tile_width
-#
-#         self.rect = self.rect.move(dx, dy)
-#         if pygame.sprite.spritecollide(self, walls, dokill=False):
-#             self.rect = self.rect.move(-dx, -dy)
-#
-#
-# def generate_level(level):
-#     new_player = None
-#     for y, row in enumerate(level):
-#         for x, cell in enumerate(row):
-#             if cell == '#':  # создается стенка
-#                 Tile('wall', x, y)
-#             elif cell == '.':  # создается дорожка
-#                 Tile('empty', x, y)
-#             elif cell == '@':  # создается место героя
-#                 Tile('empty', x, y)
-#                 new_player = Player(x, y)
-#     return new_player
 
 class Board:
-    def __init__(self, width, height):
+    def __init__(self, width, height, screen, theme='light'):
+        self.theme = theme
         self.width = width
         self.height = height
+        self.screen = screen
         self.board = [[0] * width for _ in range(height)]
         self.numbers = ['2', '4', '8', '16', '32', '64', '128',
                         '256', '512', '1024', '2048', '4048', '8096']
-        self.colors = [pygame.Color('#B6B6B2'), pygame.Color(255, 0, 0), pygame.Color(0, 0, 255)]
-        self.current_color = 0
+        self.colors = [pygame.Color('#B6B6B2')]
+        pygame.font.init()
+        # self.myfont = pygame.font.SysFont("Comic Sans MS", 30)
 
     def set_view(self, left, top, cell_size):
         self.left = left
         self.top = top
         self.cell_size = cell_size
 
-    def render(self, surf):
-        for y, row in enumerate(self.board):
-            for x, cell in enumerate(row):
-                pygame.draw.rect(
-                    surface=surf,
-                    color=pygame.Color('#A5A398'),
-                    rect=(x * self.cell_size + self.left,
-                          y * self.cell_size + self.top,
-                          self.cell_size,
-                          self.cell_size))
-                pygame.draw.rect(
-                    surface=surf,
-                    color=pygame.Color('#A5A398'),
-                    rect=(
-                        x * self.cell_size + self.left,
-                        y * self.cell_size + self.top,
-                        self.cell_size,
-                        self.cell_size),
-                    width=1)
-
-                pygame.draw.rect(
-                    surface=surf,
-                    color=self.colors[self.board[y][x]],
-                    rect=(
-                        x * self.cell_size + self.left + 10,
-                        y * self.cell_size + self.top + 10,
-                        self.cell_size - 20,
-                        self.cell_size - 20))
-
-    def get_cell(self, mouse_pos):
-        mx, my = mouse_pos
-        cell_x = (mx - self.left) // self.cell_size
-        cell_y = (my - self.top) // self.cell_size
-        if 0 <= cell_y < self.height and 0 <= cell_x < self.width:
-            return cell_x, cell_y
-        return None
-
-    def on_click(self, cell_coords):
-        x, y = cell_coords
-        if self.board[y][x] == 1:
-            self.board[y][x] = 2
-        elif self.board[y][x] == 2:
-            self.board[y][x] = 0
+    def insert_2_or_4(self):
+        temp_board = copy.deepcopy(self.board)
+        flag = True
+        x, y = random.randrange(self.width), random.randrange(self.height)
+        while flag:
+            if temp_board[y][x] == 0:
+                flag = False
+            else:
+                x, y = random.randrange(self.width), random.randrange(self.height)
+        if random.random() <= 0.75:
+            temp_board[y][x] = 2
         else:
-            self.board[y][x] = 1
+            temp_board[y][x] = 4
+        self.board = copy.deepcopy(temp_board)
 
-    # def get_click(self, mouse_pos):
-    #     cell = self.get_cell(mouse_pos)
-    #     if cell:
-    #         self.on_click(cell)
-    def get_move(self, mouse_pos):
-        cell = self.get_cell(mouse_pos)
-        if cell:
-            self.on_click(cell)
+    def right_move(self):
+        self.insert_2_or_4()
+        temp_board = copy.deepcopy(self.board)
+        tmp = moveRight(temp_board)
+        self.board = copy.deepcopy(tmp)
+
+    def left_move(self):
+        self.insert_2_or_4()
+        temp_board = copy.deepcopy(self.board)
+        moveLeft(temp_board)
+        self.board = copy.deepcopy(temp_board)
+
+    def up_move(self):
+        self.insert_2_or_4()
+        temp_board = copy.deepcopy(self.board)
+        tmp = moveUp(temp_board)
+        self.board = copy.deepcopy(tmp)
+
+    def down_move(self):
+        self.insert_2_or_4()
+        temp_board = copy.deepcopy(self.board)
+        tmp = moveDown(temp_board)
+        self.board = copy.deepcopy(tmp)
+
+    def update(self):
+        run = True
+        while run:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    terminate()
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_LEFT:
+                        self.left_move()
+                        run = False
+                    if event.key == pygame.K_RIGHT:
+                        self.right_move()
+                        run = False
+                    if event.key == pygame.K_UP:
+                        self.up_move()
+                        run = False
+                    if event.key == pygame.K_DOWN:
+                        self.down_move()
+                        run = False
+        # if new_board != board:
+        #     # fill 2/4 after every move
+        #     self.insert_2_or_4()
+        for y in range(self.height):
+            for x in range(self.width):
+                # ----------------------- интерфейс -------------------------
+                pygame.draw.rect(self.screen, pygame.Color('#A5A398'),
+                                 (x * self.cell_size + self.left, y * self.cell_size + self.top,
+                                  self.cell_size, self.cell_size))
+                pygame.draw.rect(self.screen, pygame.Color('#B6B6B2'),
+                                 (x * self.cell_size + self.left + 10, y * self.cell_size + self.top + 10,
+                                  self.cell_size - 20, self.cell_size - 20))
+                # -------------------------------------------------------------
+                if self.board[y][x] != 0:
+                    color = CP[self.board[y][x]]
+                    pygame.draw.rect(self.screen, color,
+                                     rect=(x * self.cell_size + self.left + 10, self.top + self.cell_size * y + 10,
+                                           self.cell_size - 20, self.cell_size - 20))
+                    font = pygame.font.Font(None, 100)
+                    text = font.render(f'{str(self.board[y][x])}', True, (255, 255, 255))
+                    place = text.get_rect(center=(x * self.cell_size + self.left + self.cell_size // 2,
+                                                  self.top + self.cell_size * y + self.cell_size // 2))
+                    self.screen.blit(text, place)
+
+    # def restart(board, theme, text_col):
+    #     """
+    #     Ask user to restart the game if 'n' key is pressed.
+    #
+    #     Parameters:
+    #         board (list): game board
+    #         theme (str): game interface theme
+    #         text_col (tuple): text colour
+    #     Returns:
+    #         board (list): new game board
+    #     """
+    #     # Fill the window with a transparent background
+    #     s = pygame.Surface((c["size"], c["size"]), pygame.SRCALPHA)
+    #     s.fill(c["colour"][theme]["over"])
+    #     screen.blit(s, (0, 0))
+    #
+    #     screen.blit(my_font.render("RESTART? (y / n)", 1, text_col), (85, 225))
+    #     pygame.display.update()
+    #
+    #     while True:
+    #         for event in pygame.event.get():
+    #             if event.type == QUIT or \
+    #                     (event.type == pygame.KEYDOWN and event.key == K_n):
+    #                 pygame.quit()
+    #                 sys.exit()
+    #
+    #             if event.type == pygame.KEYDOWN and event.key == K_y:
+    #                 board = newGame(theme, text_col)
+    #                 return board
+
+    def newGame(self, theme, text_col):
+        temp_board = copy.deepcopy(self.board)
+        temp_board = [[0] * self.width for _ in range(self.height)]
+        self.board = copy.deepcopy(temp_board)
+        self.insert_2_or_4()
+        self.insert_2_or_4()
+        # display(board, theme)
+        self.update()
+
+        # screen.blit(my_font.render("NEW GAME!", 1, text_col), (130, 225))
+        # pygame.display.update()
+        # wait for 1 second before starting over
+        # time.sleep(1)
+
+
+
+
+    # def new_cell(self):
+    #     temp_board = copy.deepcopy(self.board)
+    #     flag = True
+    #     x, y = random.randrange(self.width), random.randrange(self.height)
+    #     while flag:
+    #         if temp_board[y][x] == None:
+    #             flag = False
+    #         else:
+    #             x, y = random.randrange(self.width), random.randrange(self.height)
+    #
+    #     num = random.choice(self.create_cell)
+    #     temp_board[y][x] = num
+    #     self.board = copy.deepcopy(temp_board)
