@@ -12,7 +12,7 @@ def main_menu(screen):
     background_img = pygame.transform.scale(pygame.image.load('./data/fon.jpg'), (WIDTH, HEIGHT))
     font_obj = pygame.font.Font(None, 30)
     screen.blit(background_img, (0, 0))
-    text_coord = 50
+    text_coord = 70
     for line in intro_text:
         string_rendered = font_obj.render(line, 1, pygame.Color('black'))
         intro_rect = string_rendered.get_rect()
