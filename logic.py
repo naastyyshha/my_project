@@ -1,31 +1,4 @@
-import pygame
-import numpy as np
-from utils import N, CP
 import random
-
-# def key_move():
-#     while True:
-#         for event in pygame.event.get():
-#             if event.type == pygame.QUIT:
-#                 return "q"
-#             if event.type == pygame.KEYDOWN:
-#                 if event.key == pygame.K_UP:
-#                     return "u"
-#                 elif event.key == pygame.K_RIGHT:
-#                     return "r"
-#                 elif event.key == pygame.K_LEFT:
-#                     return "l"
-#                 elif event.key == pygame.K_DOWN:
-#                     return "d"
-#                 elif event.key == pygame.K_q or event.key == pygame.K_ESCAPE:
-#                     return "q"
-#
-#
-#
-lst = [[0, 0, 0, 0],
-       [0, 4, 0, 2],
-       [0, 4, 4, 0],
-       [0, 0, 0, 2]]
 
 
 def get_num_from_index(y, x):
