@@ -1,43 +1,62 @@
 import sys
 import pygame
-import os
 
-SCREEN_SIZE = WIDTH, HEIGHT = 800, 600
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-pygame.init()
+# Переменные
+GRID_COLOR = "#E5E1D3"
+EMPTY_CELL_COLOR = "#B6B6B2"
+SCORE_LABEL_FONT = "Verdana"
+
+mfont = "Verdana"
+
+SCREEN_SIZE = WIDTH, HEIGHT = 800, 700
 FPS = 60
-SPACING = 10
-N = 4
-CP = {
-    "back": (189, 172, 161),
-    0: (204, 192, 179),
-    2: (238, 228, 219),
-    4: (240, 226, 202),
-    8: (242, 177, 121),
-    16: (236, 141, 85),
-    32: (250, 123, 92),
-    64: (234, 90, 56),
-    128: (237, 207, 114),
-    256: (242, 208, 75),
-    512: (237, 200, 80),
-    1024: (227, 186, 19),
-    2048: (236, 196, 2),
-    4096: (96, 217, 146),
+
+WHITE = (255, 255, 255)
+
+CELL_COLORS = {
+    4: "#ffcff1",
+    2: "#ffe5ec",
+    16: "#cf91b5",
+    512: "#8e3563",
+    32: "#d996a7",
+    256: "#b55385",
+    128: "#ff8fab",
+    64: "#ffc0ee",
+    8: "#e0bbd2",
+    1024: "#db76bc",
+    2048: "#572649"
+}
+
+sizes = {2: 45,
+         4: 45,
+         8: 45,
+         16: 40,
+         32: 40,
+         64: 40,
+         128: 35,
+         256: 35,
+         512: 35,
+         1024: 35,
+         2048: 35}
+
+CELL_NUMBER_COLORS = {
+    2: "#695c57",
+    4: "#695c57",
+    8: "#ffffff",
+    16: "#ffffff",
+    32: "#ffffff",
+    64: "#ffffff",
+    128: "#ffffff",
+    256: "#ffffff",
+    512: "#ffffff",
+    1024: "#ffffff",
+    2048: "#ffffff"
 }
 
 
-keys = {''}
 def terminate():
     pygame.quit()
     sys.exit()
 
 
-def load_image(name, colorkey=None):
-    fullname = os.path.join('data', name)
-    # если файл не существует, то выходим
-    if not os.path.isfile(fullname):
-        print(f"Файл с изображением '{fullname}' не найден")
-        sys.exit()
-    image = pygame.image.load(fullname)
-    return image
+

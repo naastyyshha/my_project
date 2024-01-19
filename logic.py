@@ -1,105 +1,73 @@
-import random
+import os
+import sys
+import pygame
+
+from utils import mfont
 
 
-def get_num_from_index(y, x):
-    return y * 4 + x + 1
+class Barbie(pygame.sprite.Sprite):
+    def __init__(self, image, *group):
+        super().__init__(*group)
+        self.image = load_image(image)
+        self.rect = self.image.get_rect()
+        self.rect.x = 400
+        self.rect.y = 300
+
+    def update(self, screen, x, y, n):
+        self.scale = pygame.transform.scale(
+            self.image, (self.image.get_width() // n,
+                         self.image.get_height() // n))
+        self.scale_rect = self.scale.get_rect(center=(x, y))
+        screen.blit(self.scale, self.scale_rect)
+        pygame.display.update(self.rect)
 
 
-def insert_2_or_4(lst, y, x):
-    if random.random() <= 0.75:
-        lst[y][x] = 2
+class Button():
+    # Класс для создания кнопок
+    def __init__(self, colour, x, y, width, height, text=""):
+        self.colour = colour
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.text = text
+
+    # Функция для рисования конопок
+    def draw_btn(self, win, text_col):
+        pygame.draw.rect(win, self.colour, (self.x, self.y, self.width, self.height), 0, 20)
+        # drawRoundRect(win, self.colour, (self.x, self.y, self.width, self.height))
+
+        if self.text != "":
+            font = pygame.font.SysFont(mfont, 20)
+            text = font.render(self.text, 1, text_col)
+            win.blit(text, (self.x + (self.width / 2 - text.get_width() / 2),
+                            self.y + (self.height / 2 - text.get_height() / 2)))
+
+    # Провека на прикосание к кнопки
+    def touched(self, pos):
+        if pos[0] > self.x and pos[0] < (self.x + self.width) and pos[1] > self.y and pos[1] < (self.y + self.height):
+            return True
+        return False
+
+
+# Функция для загрузки картинок
+def load_image(name, colorkey=None):
+    fullname = os.path.join('data', name)
+    if not os.path.isfile(fullname):
+        print(f"Файл с изображением '{fullname}' не найден")
+        sys.exit()
+    image = pygame.image.load(fullname)
+
+    if colorkey is not None:
+        image = image.convert()
+        if colorkey == -1:
+            colorkey = image.get_at((0, 0))
+        image.set_colorkey(colorkey)
     else:
-        lst[y][x] = 4
-    return lst
+        image = image.convert_alpha()
+
+    return image
 
 
-def get_index_from_num(num):
-    num -= 1
-    y, x = num // 4, num % 4
-    return y, x
-
-
-def get_empty_list(lst):
-    empty = []
-    for y in range(4):
-        for x in range(4):
-            if lst[y][x] == 0:
-                num = get_num_from_index(y, x)
-                empty.append(num)
-    return empty
-
-
-def moveLeft(board):
-    shiftLeft(board)
-
-    for i in range(4):
-        for j in range(3):
-            if board[i][j] == board[i][j + 1] and board[i][j] != 0:
-                board[i][j] *= 2
-                board[i][j + 1] = 0
-                j = 0
-
-    shiftLeft(board)
-    return board
-
-
-def moveUp(board):
-    board = rotateLeft(board)
-    board = moveLeft(board)
-    board = rotateRight(board)
-    return board
-
-
-def moveRight(board):
-    shiftRight(board)
-
-    for i in range(4):
-        for j in range(3, 0, -1):
-            if board[i][j] == board[i][j - 1] and board[i][j] != 0:
-                board[i][j] *= 2
-                board[i][j - 1] = 0
-                j = 0
-
-    shiftRight(board)
-    return board
-
-
-def moveDown(board):
-    board = rotateLeft(board)
-    board = moveRight(board)
-    shiftRight(board)
-    board = rotateRight(board)
-    return board
-
-
-def shiftLeft(board):
-    for i in range(4):
-        nums, count = [], 0
-        for j in range(4):
-            if board[i][j] != 0:
-                nums.append(board[i][j])
-                count += 1
-        board[i] = nums
-        board[i].extend([0] * (4 - count))
-
-
-def shiftRight(board):
-    for i in range(4):
-        nums, count = [], 0
-        for j in range(4):
-            if board[i][j] != 0:
-                nums.append(board[i][j])
-                count += 1
-        board[i] = [0] * (4 - count)
-        board[i].extend(nums)
-
-
-def rotateLeft(board):
-    b = [[board[j][i] for j in range(4)] for i in range(3, -1, -1)]
-    return b
-
-
-def rotateRight(board):
-    b = rotateLeft(board)
-    b = rotateLeft(b)
-    return rotateLeft(b)
+with open('best_score.txt', 'r') as f:
+    bestscore = int(f.readline())
